@@ -4,15 +4,12 @@ install.packages("plyr")
 
 rm(list = ls()) # removes all variables in r
 library("plyr")
+getwd()
 
-setwd("/Users/noahferrel/Desktop/Test")
 load("data/testdf.Rda")
-
-setwd("/Users/noahferrel/Desktop/Test")
-load("DATA/BI_DATA_sample.Rda")
 ind = as.integer(rownames(BI_DATA_sample)) 
 
-setwd("/Users/noahferrel/Desktop/Test/DATA/CDC 10 Years of Data")
+setwd("data/CDC 10 Years of Data")
 file_names = list.files()
 E = lapply(list.files(),function(x) read.csv(x,header = T))
 e = E
@@ -31,10 +28,6 @@ combine_columns = function(df_L,col_L){
 
 newDF = do.call(cbind, lapply(w,function(x) combine_columns(E,x) ))
 
-#summary(newDF)
-#test = newDF$DRUGID9
-#summary(as.factor(test))
-
 whitespace2NA = function(vec){
   myclass = class(vec)
   vec =  as.character(vec)
@@ -46,7 +39,7 @@ whitespace2NA = function(vec){
 
 newDF = as.data.frame(lapply(newDF,function(x)   whitespace2NA(x) ))
 
-setwd("/Users/noahferrel/Desktop/Test/DATA")
+setwd("..")
 load("new_names.Rda")
 names(newDF) = new_names
 
@@ -70,19 +63,18 @@ dash_to_nothing = function(v){#changes all the dashes to ""
 
 newDF = as.data.frame(lapply(newDF,function(x)  dash_to_nothing(x) )) # goes through newDF and takes the dashes out
 
-setwd("/Users/noahferrel/Desktop/Test/results")
+getwd()
+setwd("../results")
 save(newDF,file = "newDF.Rda")
 
 
-setwd("/Users/noahferrel/Desktop/Test/DATA") 
+setwd("../data") 
 codes = read.csv("OpioidCodesOnly.csv", header = F) #set to false because there is not a header
 op_codes = as.vector(codes)[,1] #makes it into a vector
 op_codes = op_codes[!(op_codes %in% c("d04766","a11242","d03826","n09045","n11008"))]#takes out the codes i dont want
 op_codes = unique(op_codes)# takes out the repeated codes so there are only unique codes 
 
 
-
-setwd("/Users/noahferrel/Desktop/Test/DATA")
 load("ICD9_codes.RDA") #loads ICD9
 load("RFV_codes.RDA") #loads RFV
 
@@ -119,12 +111,14 @@ CONTSUB = as.data.frame(bicols(newDF_Contsub,contsub))# give 1 or 0 for CONTSUB
 
 BI_DATA = cbind(Pain_ICD9_bi, Mental_ICD9_bi, Alcohol_ICD9_bi, Diabetes_ICD9_bi, codes_RFV_bi, OP, CONTSUB) # combined “BI_DATA”
 
+setwd("../data")
+load("BI_DATA_sample.Rda")
 ind = as.integer(rownames(BI_DATA_sample))
 BIDATASUBSET = BI_DATA[ind,]
 all( (BI_DATA[ind,]) == BI_DATA_sample ) #check to see if my data matches sample data
 
 
-setwd("/Users/noahferrel/Desktop/Test/Results")
+setwd("../results")
 save(BI_DATA,file = "bidata_clean.Rda")
 
 #bicols test
@@ -144,3 +138,4 @@ D = bicols(d,test_list)
 all(A == B) #check to see if all equal 
 all(A == C)
 all(A == D)
+
