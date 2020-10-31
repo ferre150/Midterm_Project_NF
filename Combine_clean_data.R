@@ -6,7 +6,7 @@ rm(list = ls()) # removes all variables in r
 library("plyr")
 
 setwd("/Users/noahferrel/Desktop/Test")
-load("DATA/testdf.Rda")
+load("data/testdf.Rda")
 
 setwd("/Users/noahferrel/Desktop/Test")
 load("DATA/BI_DATA_sample.Rda")
