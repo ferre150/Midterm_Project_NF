@@ -62,7 +62,6 @@ dash_to_nothing = function(v){#changes all the dashes to ""
 
 newDF = as.data.frame(lapply(newDF,function(x)  dash_to_nothing(x) )) # goes through newDF and takes the dashes out
 
-getwd()
 setwd("../results")
 save(newDF,file = "newDF.Rda")
 
@@ -136,4 +135,5 @@ D = bicols(d,test_list)
 all(A == B) #check to see if all equal 
 all(A == C)
 all(A == D)
+
 
