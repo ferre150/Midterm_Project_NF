@@ -2,11 +2,10 @@
 
 install.packages("plyr")
 
-rm(list = ls()) # removes all variables in r
 library("plyr")
-getwd()
 
 load("data/testdf.Rda")
+load("data/BI_DATA_sample.Rda")
 ind = as.integer(rownames(BI_DATA_sample)) 
 
 setwd("data/CDC 10 Years of Data")
@@ -112,7 +111,6 @@ CONTSUB = as.data.frame(bicols(newDF_Contsub,contsub))# give 1 or 0 for CONTSUB
 BI_DATA = cbind(Pain_ICD9_bi, Mental_ICD9_bi, Alcohol_ICD9_bi, Diabetes_ICD9_bi, codes_RFV_bi, OP, CONTSUB) # combined “BI_DATA”
 
 setwd("../data")
-load("BI_DATA_sample.Rda")
 ind = as.integer(rownames(BI_DATA_sample))
 BIDATASUBSET = BI_DATA[ind,]
 all( (BI_DATA[ind,]) == BI_DATA_sample ) #check to see if my data matches sample data
