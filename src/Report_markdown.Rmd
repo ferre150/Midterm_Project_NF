@@ -1,0 +1,28 @@
+---
+title: "Converting Medical Data to Binary Data in  R"
+author: "Noah Ferrel"
+date: "12/13/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#rmarkdown::render('Report_markdown.Rmd', output_file = '../results')
+```
+
+## Introduction
+
+In the real world, data is collected from a variety of different sources over a wide range of time. The data is not always formatted in the most optimal manner and over time the data formatting may change. This project aims to combine and clean ten years of CDC data in a such a way that it is ripe for analysis. 
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
