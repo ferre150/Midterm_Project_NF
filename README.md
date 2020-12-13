@@ -33,7 +33,7 @@ Requires the following inputs:
 
 The code outputs clean data as bidata_clean.Rda and newDF.rda
 
-## To run the simulation
+## To run the Code
 
  1. Open the R Project file: Midterm_Project_NF.Rproj. 
  2. Make sure the directory is set to the project folder.
