@@ -1,5 +1,5 @@
 ---
-title: "Converting Medical Data to Binary Data in  R"
+title: "Converting CDC Data to Binary Data in  R"
 author: "Noah Ferrel"
 date: "12/13/2020"
 output: pdf_document
@@ -7,22 +7,103 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-#rmarkdown::render('Report_markdown.Rmd', output_file = '../results')
+knitr::opts_knit$set(root.dir = "../")
 ```
 
 ## Introduction
 
-In the real world, data is collected from a variety of different sources over a wide range of time. The data is not always formatted in the most optimal manner and over time the data formatting may change. This project aims to combine and clean ten years of CDC data in a such a way that it is ripe for analysis. 
+In the real world, data is collected from a variety of different sources over a wide range of time. The data is not always formatted in the most optimal manner and over time the data formatting may change. This project aims to combine and clean ten years of CDC data in a such a way that it is ripe for analysis. The cleaned data can be analyzed in a multitude of different ways, but logistic regressions were preformed to find the important predictors of Diabetes and Alcoholism. 
+
+## Data
+
+ - The combine_clean_data.r file takes in 16 data files from the 'data' folder
+    - CDC 10 Years of Data: patient data from 2006 to 2015
+    - BI_DATA_sample.Rda: Sample file to test what the final data should look like
+    - new_names.Rda: A file containing a list of drug ids and diagnosis
+    - ICD9_codes.RDA: A list of ICD9 codes
+    - RFV_codes.RDA: A list of RFV codes
+    - testdf.Rda: A file containing four Data Frames with different class types, used to test the bicols() function
+    - OpioidCodesOnly.csv: A list of opioid codes
+    - Parameter_OP_codes.csv: User inputed list of opioid codes
+    
+## Functions in combine_clean_data.r 
+
+ - combine_columns(df, list) : The function takes in a df and a column to grab the selected columns from each dataframe
+ - whitespace2NA(column) :The function takes in a column and changes the white space to NA
+ - dash_to_nothing(column) : The function takes in a column and gets rid of the dashes
+ - bicols(data, list): The function takes in a data frame and a list of codes to return binary column containing if the code was in the list
 
 
-```{r cars}
-summary(cars)
+## Results
+
+The project output was two new RDA files. The first file contains the codes of different diagnosis or ailments. The columns are the different Identifications and the rows are the patients. Bellow is a sample of what the outputted data looks like.
+```{r echo=FALSE}
+load("results/newDF.Rda")
+load("results/bidata_clean.Rda")
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+The second data file is the binary data frame that shows if an individual had the diagnosis or ailment. 
+```{r}
+head(newDF[,1:9])
+head(BI_DATA[,1:9])
 ```
+
+```{r echo=FALSE, message=FALSE,warning=FALSE,results='hide',fig.show='hide'}
+##  Logistic Regression
+
+library(MASS)
+library(pROC)
+for(x in names(BI_DATA)){
+  BI_DATA[[x]] = as.factor(BI_DATA[[x]])
+}
+## DIABETES
+improve = glm(Diabetes~p.arth+p.back+p.chest+p.chol+p.headache+p.pelv+p.nephro+R_circ+R_endo+s2+s6, data = BI_DATA, family = binomial)
+final_model = stepAIC(improve, trace = F)
+pred_dibep = predict(final_model,type="response")
+Diab_curve = roc(BI_DATA$Diabetes,pred_dibep,plot = F,main = "ROC Curve for Diabetes") # Area under the curve: 0.6239
+Diab_dist = (Diab_curve$sensitivities)^2 + (Diab_curve$specificities)^2
+Diab_ind = which(Diab_dist == min(Diab_dist))
+Diab_sen = Diab_curve$sensitivities[Diab_ind]
+Diab_spec = Diab_curve$specificities[Diab_ind]
+Diab_curve$thresholds[Diab_ind] # The optimal threshold for Diabetes is 0.01360379 to maximize sen and spec
+
+## ALCOHOLISM
+ALC_model = glm(Alcohol~., data = BI_DATA, family = binomial)
+ALC_improve = glm(Alcohol~p.ab+p.dent+p.headache+p.nonfrac+Diabetes+R_circ+R_nerv+R_skin+R_circ+R_mental+OP+s2+s3+s4+s5+s6,data = BI_DATA, family = binomial)
+ALC_final = stepAIC(ALC_improve, trace = F)
+pred_ALC = predict(ALC_final,type="response")
+ALC_curve = roc(BI_DATA$Alcohol,pred_ALC,plot = F)
+ALC_dist = (ALC_curve$sensitivities)^2 + (ALC_curve$specificities)^2
+ALC_ind = which(ALC_dist == min(ALC_dist))
+ALC_sen = ALC_curve$sensitivities[ALC_ind]
+ALC_spec = ALC_curve$specificities[ALC_ind]
+ALC_curve$thresholds[ALC_ind] # The optimal threshold for ALC is 0.03123456 to maximize sen and spec
+
+```
+
+Using logistic regression, it was found that arthritis pain, back pain, chest pain, chol pain, headache, pelvic pain, kidney pain,the reason for visit was endo related, schedule 2 drugs, and schedule 6 drugs were important predictors of diabetes. The area under the curve was 0.62 which is poor. With more time I would try to combine this data set with another that contained more information on the individual directly related to the known factors of diabetes .
+```{r,results='hide',warning=FALSE,message=FALSE}
+## Diabetes ROC curve
+roc(BI_DATA$Diabetes,pred_dibep,plot = T,main = "ROC Curve for Diabetes") # Area under the curve: 0.6239
+points(Diab_curve$specificities[Diab_ind],Diab_curve$sensitivities[Diab_ind],pch=16,col=3)
+text(x = Diab_curve$specificities[Diab_ind], y = Diab_curve$sensitivities[Diab_ind], labels = "The Optimal Threshold: 0.01", pos = 2)
+text(0,0.4,labels = "Area under the curve: 0.6239")
+```
+
+The important predictors of Alcoholism are abdominal pain, dent pain, headache, nonfrac pain, the reason for visit was circ, skin, mental, took opioids and schedule 2,3,4, and 6 drugs. This model performed beter than the diabetes model, but It still can be improved. I would want data on how often they drink and family history to improve the model.
+
+```{r, results='hide',warning=FALSE,message=FALSE}
+## Alcoholism ROC curve
+roc(BI_DATA$Alcohol,pred_ALC,plot = T,main = "ROC Curve for Alcoholism")
+points(ALC_curve$specificities[ALC_ind],ALC_curve$sensitivities[ALC_ind],pch=16,col=3)
+text(x = ALC_curve$specificities[ALC_ind], y = ALC_curve$sensitivities[ALC_ind], labels = "The Optimal Threshold: 0.03", pos = 2)
+text(0,0.4,labels = "Area under the curve: 0.6736")
+```
+
+## Changes for final
+
+- Removed an extra variable 'e' that had unnecessary memory cost
+- Removed a function that did not have direct applications to the project
+- Tested the mclapply from the parallel package to read in the data for line 17 (was line 13), but It did not improve run-time. When ran in parallel the run time increased from 20s to 1450s.
+- Added additional documentations to the README and to the Combine_clean_data.R especially lines 11-60 (was line 11-36)
+- Added an input file to select opioid codes that are not wanted on line 73,75 (was line 73)

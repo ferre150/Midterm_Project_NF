@@ -139,4 +139,59 @@ all(A == B) #check to see if all equal
 all(A == C)
 all(A == D)
 
+##  Logistic Regression
+
+library(MASS)
+library(pROC)
+
+
+for(x in names(BI_DATA)){
+  BI_DATA[[x]] = as.factor(BI_DATA[[x]])
+}
+
+
+summary(BI_DATA)
+
+
+## DIABETES
+log_model = glm(Diabetes~., data = BI_DATA, family = binomial)
+improve = glm(Diabetes~p.arth+p.back+p.chest+p.chol+p.headache+p.pelv+p.nephro+R_circ+R_endo+s2+s6, data = BI_DATA, family = binomial)
+summary(log_model)
+summary(improve)
+
+final_model = stepAIC(improve, trace = F)
+summary(final_model)
+
+pred_dibep = predict(final_model,type="response")
+Diab_curve = roc(BI_DATA$Diabetes,pred_dibep,plot = T,main = "ROC Curve for Diabetes") # Area under the curve: 0.6239
+
+Diab_dist = (Diab_curve$sensitivities)^2 + (Diab_curve$specificities)^2
+Diab_ind = which(Diab_dist == min(Diab_dist))
+Diab_sen = Diab_curve$sensitivities[Diab_ind]
+Diab_spec = Diab_curve$specificities[Diab_ind]
+Diab_curve$thresholds[Diab_ind] # The optimal threshold for Diabetes is 0.01360379 to maximize sen and spec
+points(Diab_curve$specificities[Diab_ind],Diab_curve$sensitivities[Diab_ind],pch=16,col=3)
+text(x = Diab_curve$specificities[Diab_ind], y = Diab_curve$sensitivities[Diab_ind], labels = "The Optimal Threshold: 0.01", pos = 2)
+text(0,0.4,labels = "Area under the curve: 0.6239")
+
+
+## ALCOHOLISM
+ALC_model = glm(Alcohol~., data = BI_DATA, family = binomial)
+ALC_improve = glm(Alcohol~p.ab+p.dent+p.headache+p.nonfrac+Diabetes+R_circ+R_nerv+R_skin+R_circ+R_mental+OP+s2+s3+s4+s5+s6,data = BI_DATA, family = binomial)
+summary(ALC_model)
+summary(ALC_improve)
+
+ALC_final = stepAIC(ALC_improve, trace = F)
+summary(ALC_final)
+
+pred_ALC = predict(ALC_final,type="response")
+ALC_curve = roc(BI_DATA$Alcohol,pred_ALC,plot = T)
+
+ALC_dist = (ALC_curve$sensitivities)^2 + (ALC_curve$specificities)^2
+ALC_ind = which(ALC_dist == min(ALC_dist))
+ALC_sen = ALC_curve$sensitivities[ALC_ind]
+ALC_spec = ALC_curve$specificities[ALC_ind]
+ALC_curve$thresholds[ALC_ind] # The optimal threshold for ALC is 0.03123456 to maximize sen and spec
+points(ALC_curve$specificities[ALC_ind],ALC_curve$sensitivities[ALC_ind],pch=16,col=3)
+text(x = ALC_curve$specificities[ALC_ind], y = ALC_curve$sensitivities[ALC_ind], labels = "The Optimal Threshold: 0.03", pos = 2)
 
