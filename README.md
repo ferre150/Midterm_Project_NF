@@ -9,12 +9,10 @@ The combine_clean_data.r file takes in a 10 years of cdc data, diagnosis codes, 
 
 ## Functions in combine_clean_data.r 
 
- - combine_columns(x) :
- - whitespace2NA(x) :
- - dash_to_0(x) :
- - dash_to_nothing(x) : 
- - bicol(x) :
- - bicols(x):
+ - combine_columns(df, list) : The function takes in a df and a column to grab the selected columns from each dataframe
+ - whitespace2NA(column) :The function takes in a column and changes the white space to NA
+ - dash_to_nothing(column) : The function takes in a column and gets rid of the dashes
+ - bicols(data, list): The function takes in a data frame and a list of codes to return binary column containing if the code was in the list
 
 ## Code Inputs
 
@@ -28,7 +26,10 @@ Requires the following inputs:
     - RFV_codes.RDA: A list of RFV codes
     - testdf.Rda: A file containing four Data Frames with different class types, used to test the bicols() function
     - OpioidCodesOnly.csv: A list of opioid codes
- 
+    - Parameter_OP_codes.csv: User inputed list of opioid codes
+    
+## Proceess
+
 ## Code Outputs
 
 The code outputs clean data as bidata_clean.Rda and newDF.rda

@@ -51,15 +51,6 @@ setwd("..")
 load("new_names.Rda")
 names(newDF) = new_names
 
-dash_to_0 = function(v){ # changes all the dashes to 0 not needed for this project
-  g = class(v)
-  v = as.character(v)
-  v = gsub("-", "0", v)
-  x = get(paste0("as.",g))
-  v= x(v)
-  return (v)
-}
-
 dash_to_nothing = function(v){#changes all the dashes to ""
   g = class(v) #saves class of input
   v = as.character(v) #coersed to a character
@@ -79,7 +70,7 @@ save(newDF,file = "newDF.Rda")
 
 setwd("../data") 
 codes = read.csv("OpioidCodesOnly.csv", header = F) #set to false because there is not a header
-param_codes = read.csv("Paramenter_OP_codes.csv", header = F)
+param_codes = read.csv("Parameter_OP_codes.csv", header = T)
 op_codes = as.vector(codes)[,1] #makes it into a vector
 op_codes = op_codes[!(op_codes %in% c(param_codes))]#takes out the codes i dont want
 op_codes = unique(op_codes)# takes out the repeated codes so there are only unique codes 
