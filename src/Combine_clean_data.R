@@ -1,6 +1,6 @@
-# Combine and clean ten years of CDC data
+# Combine and clean ten years of CDC data'
 
-install.packages("plyr")
+#install.packages("plyr")
 
 library("plyr")
 
@@ -8,35 +8,44 @@ load("data/testdf.Rda")
 load("data/BI_DATA_sample.Rda")
 ind = as.integer(rownames(BI_DATA_sample)) 
 
-setwd("data/CDC 10 Years of Data")
-file_names = list.files()
-E = lapply(list.files(),function(x) read.csv(x,header = T))
-e = E
-w = list(
-  lapply(E,function(x) names(x)[grep("DRUGID", names(x))]),
-  lapply(E,function(x) names(x)[grep("CONTSUB", names(x))]),
-  lapply(1:10,function(x) if(x<=8){c("DIAG1","DIAG2","DIAG3")}else{c("DIAG1","DIAG2","DIAG3","DIAG4","DIAG5")} ),
-  lapply(1:10,function(x) if(x<=8){c("RFV1","RFV2","RFV3")}else{c("RFV1","RFV2","RFV3","RFV4","RFV5")} )
+### Read in data, clean, and combine
+
+## Read in the data
+
+setwd("data/CDC 10 Years of Data") # change the directory to where the CDC data is
+file_names = list.files() # names of all the CDC csv files 
+E = lapply(list.files(),function(x) read.csv(x,header = T)) # using lapply to create a list of data frames
+# each data frame in the list 'E' corresponds to a CSV file
+
+w = list( # a list that contains 4 elements, each element holds the names of the columns from each csv that we want.
+  lapply(E,function(x) names(x)[grep("DRUGID", names(x))]), # grab the column names that contain DRUGID, not all columns have the same amount of DRUGID specified columns
+  lapply(E,function(x) names(x)[grep("CONTSUB", names(x))]),  # grab the column names that contain CONTSUB, not all columns have the same amount of CONTSUB specified columns
+  lapply(1:10,function(x) if(x<=8){c("DIAG1","DIAG2","DIAG3")}else{c("DIAG1","DIAG2","DIAG3","DIAG4","DIAG5")} ),# the first 8 csv files have 3 DIAG columns and the remainder have 5
+  lapply(1:10,function(x) if(x<=8){c("RFV1","RFV2","RFV3")}else{c("RFV1","RFV2","RFV3","RFV4","RFV5")} )# the first 8 csv files have 3 RFV columns and the remainder have 5
 )
 
-combine_columns = function(df_L,col_L){
+## Combine the 10 different csv files into a single dataframe
+
+combine_columns = function(df_L,col_L){ # the function grabs the column names from t
   sub_df_L = mapply(function(x,y) x[,y] ,df_L,col_L ) 
   new_df = do.call(rbind.fill,sub_df_L)
   return(new_df)
 }
 
-newDF = do.call(cbind, lapply(w,function(x) combine_columns(E,x) ))
+newDF = do.call(cbind, lapply(w,function(x) combine_columns(E,x) )) # combines the data into one dataframe
+
+## Cleaning the data
 
 whitespace2NA = function(vec){
-  myclass = class(vec)
-  vec =  as.character(vec)
-  vec[trimws(vec)==""] = NA
-  func = get( paste0("as.",myclass) )
-  vec = func(vec)
+  myclass = class(vec) #saves class of input
+  vec =  as.character(vec) #coersed to a character
+  vec[trimws(vec)==""] = NA #changes "" to NA
+  func = get( paste0("as.",myclass) ) #gets what as.class  is and stores it in x
+  vec = func(vec) #uses the as.class function to change it back into what it was
   return(vec)
 }
 
-newDF = as.data.frame(lapply(newDF,function(x)   whitespace2NA(x) ))
+newDF = as.data.frame(lapply(newDF,function(x)   whitespace2NA(x) )) # changes all the rows that had "" to NA
 
 setwd("..")
 load("new_names.Rda")
@@ -66,10 +75,13 @@ setwd("../results")
 save(newDF,file = "newDF.Rda")
 
 
+## Changing the data to binary
+
 setwd("../data") 
 codes = read.csv("OpioidCodesOnly.csv", header = F) #set to false because there is not a header
+param_codes = read.csv("Paramenter_OP_codes.csv", header = F)
 op_codes = as.vector(codes)[,1] #makes it into a vector
-op_codes = op_codes[!(op_codes %in% c("d04766","a11242","d03826","n09045","n11008"))]#takes out the codes i dont want
+op_codes = op_codes[!(op_codes %in% c(param_codes))]#takes out the codes i dont want
 op_codes = unique(op_codes)# takes out the repeated codes so there are only unique codes 
 
 
