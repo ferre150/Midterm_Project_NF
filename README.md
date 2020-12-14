@@ -28,7 +28,12 @@ Requires the following inputs:
     - OpioidCodesOnly.csv: A list of opioid codes
     - Parameter_OP_codes.csv: User inputed list of opioid codes
     
-## Proceess
+## Steps taken to Clean, Combine, and Convert the data
+
+1. Read in the data 
+2. Combine the 10 different csv files into a single Data Frame
+3. Clean the data
+4. Change the data to binary
 
 ## Code Outputs
 
